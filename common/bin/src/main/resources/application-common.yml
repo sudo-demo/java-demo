@@ -1,0 +1,222 @@
+# 通用配置（适用于所有微服务）
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  # Nacos服务发现配置
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        username: nacos
+        password: nacos
+        namespace: c10bce02-55ae-424d-a193-86728c4cc411
+  # Redis配置
+  redis:
+    # Redis服务器地址（可根据环境覆盖）
+    host: 127.0.0.1
+    # Redis端口（可根据环境覆盖）
+    port: 6379
+    # Redis密码
+    password: 123456
+    # Redis数据库索引
+    database: 0
+    # 连接超时时间
+    timeout: 10000ms
+    
+    # Lettuce连接池配置（生产环境建议调整）
+    lettuce:
+      pool:
+        # 最大活跃连接数
+        max-active: 20
+        # 最大空闲连接数
+        max-idle: 10
+        # 最小空闲连接数
+        min-idle: 0
+        # 最大等待时间(-1表示不限制)
+        max-wait: -1ms
+    
+    # Redisson客户端配置
+    redisson:
+      # 连接池大小
+      pool:
+        size: 64
+        min-idle: 32
+      # 超时配置
+      timeout:
+        idle: 10000
+        connect: 10000
+        general: 3000
+      # 重试配置
+      retry:
+        attempts: 3
+        interval: 1500
+    
+    # Redis环境前缀配置（用于多环境数据隔离）
+    env:
+      # 环境前缀，如：dev、test、prod
+      # 配置了前缀即自动启用环境隔离功能
+      prefix: dev
+    # 启用Redis
+    enabled: true
+      
+  # Jackson JSON配置（统一序列化规则）
+  jackson:
+    # 日期格式
+    date-format: yyyy-MM-dd HH:mm:ss
+    # 时区设置
+    time-zone: GMT+8
+    # 属性命名策略
+    property-naming-strategy: LOWER_CAMEL_CASE
+    # 序列化配置
+    serialization:
+      # 空对象不输出为null
+      write-null-map-values: false
+      # 忽略空bean
+      fail-on-empty-beans: false
+      # 写入日期时使用字符串格式（非时间戳）
+      write-dates-as-timestamps: false
+    # 反序列化配置
+    deserialization:
+      # 忽略未知属性
+      fail-on-unknown-properties: false
+
+# 服务器通用配置
+server:
+  # Tomcat配置
+  tomcat:
+    # 最大线程数
+    max-threads: 200
+    # 最小空闲线程数
+    min-spare-threads: 10
+    # 连接超时时间
+    connection-timeout: 20000ms
+    # 最大连接数
+    max-connections: 8192
+    # 接受队列长度
+    accept-count: 100
+
+# Spring Boot Actuator监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        # 暴露常用监控端点
+        include: health,info,metrics,env,configprops,loggers
+  endpoint:
+    health:
+      # 显示详细健康信息
+      show-details: when-authorized
+    info:
+      # 启用info端点
+      enabled: true
+
+# 日志通用配置
+logging:
+  level:
+    # 根日志级别
+    root: INFO
+    # Spring框架日志级别
+    org.springframework: WARN
+    # Spring Boot日志级别
+    org.springframework.boot: INFO
+    # 数据库相关日志级别
+    org.springframework.jdbc: WARN
+    org.hibernate: WARN
+    # Redis相关日志级别
+    org.springframework.data.redis: INFO
+    io.lettuce: WARN
+    org.redisson: INFO
+  # 日志格式配置
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# 应用信息配置
+info:
+  app:
+    name: "@project.artifactId@"
+    description: "@project.description@"
+    version: "@project.version@"
+  java:
+    version: "@java.version@"
+  spring:
+    profiles:
+      active: "@spring.profiles.active@"
+
+# 自定义公共配置
+app:
+  # 公共工具配置
+  common:
+    # 缓存配置
+    cache:
+      # 默认缓存过期时间（秒）
+      default-expire: 3600
+      # 最大缓存数量
+      max-size: 1000
+    
+    # 分布式锁配置
+    lock:
+      # 默认锁超时时间（秒）
+      default-lease-time: 30
+      # 默认等待时间（秒）
+      default-wait-time: 10
+    
+    # 重试配置
+    retry:
+      # 默认最大重试次数
+      max-attempts: 3
+      # 默认重试间隔（毫秒）
+      interval: 1000
+
+#Knife4j 核心配置（适配OpenAPI 3.0）
+knife4j:
+  enable: true
+  production: false
+  setting:
+    language: zh-CN
+    enableDebug: true
+    enableDocumentManage: true
+
+# JWT配置
+jwt:
+  secret: default_secret_key_12345  # JWT密钥
+  expire: 7200000  # JWT过期时间（毫秒），默认2小时
+  algorithm: HS256  # JWT签名算法
+  header: Authorization  # JWT请求头名称
+  prefix: Bearer  # JWT请求头前缀
+
+# 安全配置
+# 用于管理认证相关的配置，包括白名单路径等
+# 所有服务模块都会继承这些配置
+security:
+  # Swagger相关路径白名单
+  # 用于放行Swagger UI和API文档相关的路径，无需认证即可访问
+  swaggerPaths:
+    - /swagger-ui.html          # Swagger UI首页
+    - /swagger-ui/**            # Swagger UI相关资源
+    - /v3/api-docs/**           # OpenAPI 3.0文档
+    - /webjars/**               # WebJars静态资源
+    - /doc.html                 # Knife4j文档首页
+  # 健康检查相关路径白名单
+  # 用于放行Spring Boot Actuator监控相关的路径
+  healthPaths:
+    - /actuator/**              # Actuator监控端点
+  # 自定义白名单路径
+  # 用于放行业务相关的公共接口，无需认证即可访问
+  # 注意：这里使用的是相对路径，不包含应用上下文路径
+  customWhitelistPaths:
+    - /favicon.ico              # 网站图标
+    # 系统服务认证相关接口
+    - /auth/login               # 系统服务登录接口
+    - /auth/refresh             # 系统服务刷新令牌接口
+    - /auth/register            # 系统服务注册接口
+    - /auth/logout              # 系统服务登出接口
+    - /auth/captcha             # 系统服务验证码接口
+    - /auth/me                  # 系统服务获取当前用户信息接口
+    - /auth/changePassword      # 系统服务修改密码接口
+    # 测试接口
+    - /test/**                  # 所有测试接口
+    # 其他服务的认证接口可以根据需要添加
+    # - /manage/auth/login       # 管理服务登录接口
+    # - /api/auth/login          # API服务登录接口

@@ -1,0 +1,191 @@
+# 服务器配置
+server:
+  port: 9999  # 服务端口号
+  address: 127.0.0.1  # 服务器地址
+
+# Spring 配置
+spring:
+  # WebFlux 特定配置
+  webflux:
+    # 启用 WebFlux 支持
+    hiddenmethod:
+      filter:
+        enabled: true
+  # 应用配置
+  application:
+    name: gateway  # 应用名称，用于服务注册和发现
+  # 配置文件包含
+  profiles:
+    include: common  # 包含common配置文件
+  # 云服务配置
+  cloud:
+    # Nacos配置
+    nacos:
+      # 服务发现配置
+      discovery:
+        server-addr: 127.0.0.1:8848
+        service: ${spring.application.name}  # 服务名称
+        register-enabled: true  # 启用服务注册
+        watch-enabled: true  # 启用服务发现
+        use-endpoint-parsing: false  # 不使用端点解析
+        use-cloud-namespace-parsing: false  # 不使用云命名空间解析
+        ip: 127.0.0.1  # 服务IP地址
+        port: 9999  # 服务端口
+        group: DEFAULT_GROUP  # 服务分组
+        cluster-name: DEFAULT  # 集群名称
+        heart-beat-interval: 5000  # 心跳间隔（毫秒）
+        heart-beat-timeout: 15000  # 心跳超时（毫秒）
+        ip-delete-timeout: 30000  # IP删除超时（毫秒）
+    # Gateway配置
+    gateway:
+      discovery:
+        locator:
+          enabled: true  # 启用服务发现路由
+      # 默认过滤器
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin  # 去重响应头部
+      # 全局CORS配置
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns: "*"  # 允许的源
+            allowed-methods: "*"  # 允许的方法
+            allowed-headers: "*"  # 允许的头部
+            allow-credentials: true  # 允许凭证
+            max-age: 3600  # 预检请求缓存时间（秒）
+      # 路由配置
+      routes:
+        # 系统服务路由
+        - id: system-service
+          uri: lb://system-service
+          predicates:
+            - Path=/system/**
+        # 管理服务路由
+        - id: manage-service
+          uri: lb://manage-service
+          predicates:
+            - Path=/manage/**
+  # Redis配置
+  redis:
+    host: 127.0.0.1  # Redis主机地址
+    port: 6379  # Redis端口
+    password: 123456  # Redis密码
+    # Lettuce连接池配置
+    lettuce:
+      pool:
+        max-active: 8  # 最大活跃连接数
+        max-idle: 8  # 最大空闲连接数
+        min-idle: 0  # 最小空闲连接数
+        max-wait: -1ms  # 最大等待时间（毫秒）
+    timeout: 2000ms  # 连接超时时间（毫秒）
+  # Jackson配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss  # 日期格式
+    time-zone: GMT+8  # 时区
+    default-property-inclusion: non_null  # 默认属性包含策略
+
+# Knife4j Gateway 配置
+knife4j:
+  gateway:
+    enabled: true  # 启用 Knife4j Gateway
+    routes:
+      - name: 系统服务
+        url: /system/v3/api-docs
+        serviceName: system-service
+        contextPath: /system
+      - name: 管理服务
+        url: /manage/v3/api-docs
+        serviceName: manage-service
+        contextPath: /manage
+
+# Sentinel配置
+spring.cloud.sentinel:
+  enabled: true  # 启用Sentinel
+  transport:
+    dashboard: 127.0.0.1:8080  # Sentinel控制台地址
+    port: 8719  # Sentinel客户端端口
+  eager: true  # 饥饿加载
+  filter:
+    enabled: true  # 启用Sentinel过滤器
+  datasource:
+    ds1:
+      nacos:
+        server-addr: 127.0.0.1:8848  # Nacos服务地址
+        dataId: ${spring.application.name}-sentinel  # 数据ID
+        groupId: DEFAULT_GROUP  # 分组ID
+        rule-type: gw-flow  # 规则类型
+
+# 自定义Sentinel配置
+cobazaar:
+  sentinel:
+    enabled: true  # 启用自定义Sentinel配置
+    # 流控规则
+    flow:
+      rules:
+        - resource: user-service-api  # 资源名称
+          grade: 1  # QPS模式
+          count: 100  # 阈值
+          interval-sec: 1  # 统计时间窗口（秒）
+          control-behavior: 0  # 控制行为
+        - resource: order-service-api  # 资源名称
+          grade: 0  # 线程数模式
+          count: 50  # 阈值
+          control-behavior: 0  # 控制行为
+    # 降级规则
+    degrade:
+      rules:
+        - resource: user-service-api  # 资源名称
+          grade: 0  # 异常比例
+          count: 0.5  # 阈值
+          time-window: 10  # 时间窗口（秒）
+        - resource: order-service-api  # 资源名称
+          grade: 1  # 异常数
+          count: 10  # 阈值
+          time-window: 5  # 时间窗口（秒）
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # 暴露所有端点
+  endpoint:
+    health:
+      show-details: always  # 显示健康详情
+
+# 网关认证配置
+gateway:
+  auth:
+    # 需要放行的公共资源路径白名单
+    whitelistPaths:
+      - /actuator/**              # Spring Boot监控端点
+      - /swagger-ui/**            # Swagger UI页面
+      - /swagger-ui.html          # Swagger UI首页
+      - /webjars/**               # Swagger静态资源
+      - /v3/api-docs/**           # OpenAPI 3.0文档
+      - /v2/api-docs/**           # Swagger 2.0文档（兼容性）
+      - /swagger-resources/**     # Swagger资源配置
+      - /system/v3/api-docs       # 系统服务OpenAPI 3.0文档
+      - /**/v3/api-docs           # 带有服务前缀的OpenAPI 3.0文档
+      - /**/v2/api-docs           # 带有服务前缀的Swagger 2.0文档
+      - /doc.html                 # Knife4j UI页面
+      - /csrf                     # CSRF令牌
+      - /error                    # 错误页面
+      - /favicon.ico              # 网站图标
+      - /system/auth/login        # 系统服务登录接口
+      - /system/auth/refresh      # 系统服务刷新令牌接口
+      - /system/auth/register     # 系统服务注册接口
+      - /system/auth/logout       # 系统服务登出接口
+      - /system/auth/captcha      # 系统服务验证码接口
+      - /system/auth/me           # 系统服务获取当前用户信息接口
+      - /system/auth/changePassword  # 系统服务修改密码接口
+
+# 日志配置
+logging:
+  level:
+    com.cobazaar: debug  # 自定义包日志级别
+    org.springframework.cloud.gateway: debug  # Gateway日志级别
+    reactor.netty: debug  # Netty日志级别
+    com.alibaba.csp.sentinel: info  # Sentinel日志级别
+    springfox: debug  # Swagger日志级别
+

@@ -1,0 +1,70 @@
+# 服务器配置
+server:
+  port: 9996  # 服务端口号
+  servlet:
+    context-path: /manage  # 应用上下文路径
+
+# Spring 配置
+spring:
+  # 允许bean定义覆盖
+  main:
+    allow-bean-definition-overriding: true
+  # 应用配置
+  application:
+    name: manage-service  # 服务名称，用于服务注册和发现
+  # 配置文件包含
+  profiles:
+    include: common  # 包含common配置文件
+  # Redis配置
+  redis:
+    enabled: false  # 禁用Redis，避免连接错误
+  # 数据源配置
+  datasource:
+    url: jdbc:mysql://localhost:3306/cobazaar?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # Hikari连接池配置
+    hikari:
+      minimum-idle: 5  # 最小空闲连接数
+      maximum-pool-size: 10  # 最大连接数
+      idle-timeout: 30000  # 空闲超时时间（毫秒）
+      connection-timeout: 20000  # 连接超时时间（毫秒）
+      max-lifetime: 1800000  # 连接最大生命周期（毫秒）
+      pool-name: HikariCP  # 连接池名称
+  # Jackson配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss  # 日期格式
+    time-zone: GMT+8  # 时区
+    default-property-inclusion: non_null  # 默认属性包含策略
+
+# MyBatis Plus配置
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml  # Mapper映射文件位置
+  type-aliases-package: com.cobazaar.manage.entity  # 实体类包路径
+  global-config:
+    db-config:
+      id-type: auto  # ID生成策略
+      logic-delete-field: delFlag  # 逻辑删除字段
+      logic-delete-value: 1  # 逻辑删除值
+      logic-not-delete-value: 0  # 逻辑未删除值
+  configuration:
+    map-underscore-to-camel-case: true  # 开启下划线转驼峰
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 日志实现
+
+# 日志配置
+logging:
+  level:
+    com.cobazaar.manage: debug  # 管理模块日志级别
+    org.springframework.security: info  # Spring Security日志级别
+    com.baomidou.mybatisplus: debug  # MyBatis Plus日志级别
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # 暴露所有端点
+  endpoint:
+    health:
+      show-details: always  # 显示健康详情

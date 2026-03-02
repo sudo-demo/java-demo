@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cobazaar.system.mapper.UserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.cobazaar.system.entity.User">
+        <id column="id" property="id" />
+        <result column="username" property="username" />
+        <result column="password" property="password" />
+        <result column="nickname" property="nickname" />
+        <result column="real_name" property="realName" />
+        <result column="phone" property="phone" />
+        <result column="email" property="email" />
+        <result column="avatar" property="avatar" />
+        <result column="status" property="status" />
+        <result column="last_login_time" property="lastLoginTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 分页查询用户列表 -->
+    <select id="selectUserPage" resultMap="BaseResultMap">
+        SELECT * FROM sys_user
+        <where>
+            <if test="params.username != null and params.username != ''">
+                <!-- 使用bind函数避免SQL注入 -->
+                <bind name="usernameLike" value="'%' + params.username + '%'" />
+                AND username LIKE #{usernameLike}
+            </if>
+            <if test="params.nickname != null and params.nickname != ''">
+                <!-- 使用bind函数避免SQL注入 -->
+                <bind name="nicknameLike" value="'%' + params.nickname + '%'" />
+                AND nickname LIKE #{nicknameLike}
+            </if>
+            <if test="params.realName != null and params.realName != ''">
+                <!-- 使用bind函数避免SQL注入 -->
+                <bind name="realNameLike" value="'%' + params.realName + '%'" />
+                AND real_name LIKE #{realNameLike}
+            </if>
+            <if test="params.phone != null and params.phone != ''">
+                <!-- 使用bind函数避免SQL注入 -->
+                <bind name="phoneLike" value="'%' + params.phone + '%'" />
+                AND phone LIKE #{phoneLike}
+            </if>
+            <if test="params.email != null and params.email != ''">
+                <!-- 使用bind函数避免SQL注入 -->
+                <bind name="emailLike" value="'%' + params.email + '%'" />
+                AND email LIKE #{emailLike}
+            </if>
+            <if test="params.status != null">
+                AND status = #{params.status}
+            </if>
+        </where>
+        <choose>
+            <when test="params.sortField != null and params.sortField != ''">
+                ORDER BY ${params.sortField} ${params.sortOrder}
+            </when>
+            <otherwise>
+                ORDER BY id ASC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据用户名查询用户 -->
+    <select id="selectByUsername" resultMap="BaseResultMap">
+        SELECT * FROM sys_user WHERE username = #{params}
+    </select>
+
+</mapper>

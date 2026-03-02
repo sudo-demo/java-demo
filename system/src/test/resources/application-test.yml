@@ -1,0 +1,5 @@
+# 测试环境配置
+spring:
+  # 禁用Redis
+  redis:
+    enabled: false
